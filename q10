@@ -1,0 +1,32 @@
+import java.util.concurrent.*;
+import java.util.*;
+
+public class ThreadPool {
+
+    private final int nThreads;
+    private final ExecutorService executor;
+
+    // Constructor
+    public ThreadPool(int nThreads) {
+        this.nThreads = nThreads;
+        this.executor = Executors.newFixedThreadPool(nThreads);
+    }
+
+    // Submit a task to the pool
+    public void enqueue(Runnable task) {
+        executor.submit(task);
+    }
+
+    // Shutdown the pool gracefully
+    public void shutdown() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+}

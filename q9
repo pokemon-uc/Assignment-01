@@ -1,0 +1,71 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class LRUCache {
+    // Static inner class for better memory management
+    private static class Node {
+        int key, value;
+        Node prev, next;
+        Node(int k, int v) { this.key = k; this.value = v; }
+    }
+
+    private final int capacity;
+    private final Map<Integer, Node> cache;
+    private final Node head, tail;
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.cache = new HashMap<>();
+        
+        // Initialize dummy nodes to avoid null checks
+        head = new Node(0, 0);
+        tail = new Node(0, 0);
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        if (!cache.containsKey(key)) return -1;
+        
+        Node node = cache.get(key);
+        moveToFront(node);
+        return node.value;
+    }
+
+    public void put(int key, int value) {
+        if (cache.containsKey(key)) {
+            Node node = cache.get(key);
+            node.value = value; // Update value
+            moveToFront(node);
+        } else {
+            if (cache.size() >= capacity) {
+                // Remove Least Recently Used (at the tail)
+                cache.remove(tail.prev.key);
+                removeNode(tail.prev);
+            }
+            Node newNode = new Node(key, value);
+            cache.put(key, newNode);
+            addNode(newNode);
+        }
+    }
+
+    // Helper: Move existing node to the most recent position
+    private void moveToFront(Node node) {
+        removeNode(node);
+        addNode(node);
+    }
+
+    // Helper: Basic DLL removal
+    private void removeNode(Node node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+
+    // Helper: Always add right after the dummy head
+    private void addNode(Node node) {
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+    }
+}
